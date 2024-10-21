@@ -5,7 +5,8 @@
   fetchFromGitHub,
   # jdk11_headless,
   makeWrapper,
-  jre,
+  jre_headless,
+  jreEffective ? jre_headless,
 }:
 
 maven.buildMavenPackage rec {
@@ -42,7 +43,7 @@ maven.buildMavenPackage rec {
       classPath="$classPath''${classPath:+:}$j"
     done < <( find "$out" -iname "*.jar" -print0 )
     flagsArray=(
-      "${lib.getExe' jre "java"}"
+      "${lib.getExe' jreEffective "java"}"
       "$out/bin/jplag"
       --add-flags "-cp $classPath"
       --add-flags "de.jplag.cli.CLI"
