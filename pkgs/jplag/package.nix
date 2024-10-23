@@ -5,8 +5,10 @@
   fetchFromGitHub,
   # jdk11_headless,
   makeWrapper,
+  jre,
   jre_headless,
-  jreEffective ? jre_headless,
+  jreEffective ? if jplagEnableView then jre else jre_headless,
+  jplagEnableView ? true, # Support --mode VIEW
 }:
 
 maven.buildMavenPackage rec {
@@ -24,10 +26,11 @@ maven.buildMavenPackage rec {
 
   # no mvnParameters: mvnHash = "sha256-mhOZCRySZxEWESgyxkCpkjN0/T2HlesygCBDlK/RRuk=";
   mvnHash = "sha256-mnYd9fPA9TWmclMdD041ghUI6Nqie9kx6ZRBvIVm/NM=";
-  mvnParameters = 
-    "assembly:single"
-  ;
+  mvnParameters = "assembly:single";
   installAllJars = true;
+  makeWrapperArgs = [
+    "--add-flags -Dorg.slf4j.simpleLogger.defaultLogLevel=INFO"
+  ];
   installPhase = ''
     mkdir -p "$out/share/jplag"
     mkdir -p "$out/bin"
@@ -45,6 +48,9 @@ maven.buildMavenPackage rec {
     flagsArray=(
       "${lib.getExe' jreEffective "java"}"
       "$out/bin/jplag"
+    )
+    concatTo flagsArray makeWrapperArgs
+    flagsArray+=(
       --add-flags "-cp $classPath"
       --add-flags "de.jplag.cli.CLI"
     )
